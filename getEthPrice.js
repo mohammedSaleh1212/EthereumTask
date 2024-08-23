@@ -23,11 +23,19 @@ const getEthPrice = async () => {
         console.log('Ethereum (ETH) Price:');
         console.log(`In USDT: ${response.data.USDT}`);
         console.log(`In USDC: ${response.data.USDC}`);
+        const prices = {
+            USDT: response.data.USDT,
+            USDC: response.data.USDC,
+        };
+        return prices
     } catch (error) {
         console.error('Error fetching ETH price:', error);
     }
 };
 
-getEthPrice();
+getEthPrice()
+.then(prices => {
+    console.log(JSON.stringify(prices, null, 2)); // Pretty print JSON
+})
 
 
