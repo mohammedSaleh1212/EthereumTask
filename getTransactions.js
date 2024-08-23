@@ -1,13 +1,9 @@
-
 const { ethers } = require("ethers");
 
-
 const INFURA_URL = process.env.INFURA_URL || "https://mainnet.infura.io/v3/423150519d6842cbb425088ebbc57329";
-const TRANSFER_COUNT = 10; 
-
+const TRANSFER_COUNT = 10;
 
 const provider = new ethers.providers.JsonRpcProvider(INFURA_URL);
-
 
 async function getLastTransfers(transferCount = TRANSFER_COUNT) {
     try {
@@ -16,7 +12,6 @@ async function getLastTransfers(transferCount = TRANSFER_COUNT) {
         let promises = [];
 
         for (let i = latestBlock; i >= 0 && transfers.length < transferCount; i--) {
-      
             promises.push(provider.getBlockWithTransactions(i).then(block => {
                 for (let tx of block.transactions) {
                     if (tx.value.gt(0)) {
@@ -43,16 +38,17 @@ async function getLastTransfers(transferCount = TRANSFER_COUNT) {
         }
 
         await Promise.all(promises);
-        return transfers.slice(0, transferCount);
+
+        // Convert the array of transactions to a JSON string and return it
+        return JSON.stringify(transfers.slice(0, transferCount), null, 2); // Optional: 2-space indentation for readability
     } catch (error) {
         console.error("Error in getLastTransfers:", error);
         throw error;
     }
 }
 
-getLastTransfers().then(transfers => {
-    console.log(transfers);
+getLastTransfers().then(transfersJson => {
+    console.log(transfersJson); // This will now print the JSON string
 }).catch(error => {
     console.error("Error:", error);
 });
-

@@ -1,3 +1,5 @@
 node_modules
 lastTenTransactions.json
 prices.json
+getT.json
+getE.js
