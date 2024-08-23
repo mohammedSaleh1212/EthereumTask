@@ -1,8 +1,6 @@
 
 
 const { ethers } = require("ethers");
-
-
 const INFURA_URL = "https://mainnet.infura.io/v3/423150519d6842cbb425088ebbc57329";
 const provider = new ethers.providers.JsonRpcProvider(INFURA_URL);
 
