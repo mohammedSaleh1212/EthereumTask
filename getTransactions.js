@@ -1,46 +1,37 @@
 
-require('dotenv').config();
-const ethers = require('ethers');
-const axios = require('axios');
-const apiKey = process.env.ETHERSCAN_API_KEY;
-const etherscanAPI = axios.create({
-    baseURL: 'https://api.etherscan.io/api',
-    params: {
-        apikey: apiKey,
-    },
+    const { ethers } = require('ethers');
+
+const infuraProjectId = '423150519d6842cbb425088ebbc57329';
+const provider = new ethers.providers.InfuraProvider('homestead', infuraProjectId);
+
+async function getLatestBlockNumber() {
+  return await provider.getBlockNumber();
+}
+
+async function getTransactionsFromBlock(blockNumber) {
+  const block = await provider.getBlockWithTransactions(blockNumber);
+  return block.transactions;
+}
+
+async function getLastTenTransferTransactions() {
+  const latestBlockNumber = await getLatestBlockNumber();
+  let transactions = [];
+  let blockNumber = latestBlockNumber;
+
+  while (transactions.length < 10 && blockNumber >= 0) {
+    const blockTransactions = await getTransactionsFromBlock(blockNumber);
+    const transferTransactions = blockTransactions.filter(tx => tx.data === '0x');
+    transactions = transactions.concat(transferTransactions);
+    blockNumber--;
+  }
+
+  return transactions.slice(0, 10);
+}
+
+getLastTenTransferTransactions().then(transactions => {
+  transactions.forEach(tx => {
+    console.log(`Hash: ${tx.hash}, From: ${tx.from}, To: ${tx.to}, Value: ${ethers.utils.formatEther(tx.value)} ETH,Block: ${parseInt(tx.blockNumber)}`);
+  });
+}).catch(error => {
+  console.error('Error fetching transactions:', error);
 });
-
-const address = '0xdAC17F958D2ee523a2206206994597C13D831ec7';
-
-const formatTransaction = (tx) => {
-    return `Hash: ${tx.hash}, From: ${tx.from}, To: ${tx.to}, Value: ${ethers.utils.formatEther(tx.value)} ETH, Block: ${tx.blockNumber}`;
-};
-
-const getLastTenTransactions = async () => {
-    try {
-        const response = await etherscanAPI.get('', {
-            params: {
-                module: 'account',
-                action: 'txlist',
-                address: address,
-                startblock: 0,
-                endblock: 99999999,
-                sort: 'desc',
-                offset: 10,
-                page: 1,
-            },
-        });
-
-        const transactions = response.data.result;
-
-        console.log('Last ten transactions:');
-        transactions.forEach(tx => {
-            console.log(formatTransaction(tx));
-        });
-    } catch (error) {
-        console.error('Error fetching transactions:', error);
-    }
-};
-
-getLastTenTransactions();
-
